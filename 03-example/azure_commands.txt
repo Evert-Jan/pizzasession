@@ -1,0 +1,663 @@
+
+ssh-keygen \
+    -t rsa \
+    -b 4096 \
+    -C "arjan.schaaf@iddinkgroup.com" \
+    -f ~/.ssh/azure-iddink 
+    
+https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-cli#create-a-virtual-network
+
+
+######################################################################## Resource Group Configuration ########################################################################
+
+az group create \
+   --location westeurope \
+   --name informationgrid \
+   --subscription MM_IG_yunoo.me \
+   --tags 'Developer=arjan.schaaf@iddinkgroup.com'
+
+
+az group create \
+   --location westeurope \
+   --name informationgrid \
+   --subscription MM_IG_magister.me \
+   --tags 'Developer=arjan.schaaf@iddinkgroup.com'
+
+az group create \
+   --location westeurope \
+   --name cloudrti \
+   --subscription MM_CloudRTI \
+   --tags 'Developer=arjan.schaaf@iddinkgroup.com'
+
+
+######################################################################## MM_IG_yunoo.me Network Configuration ########################################################################
+
+az network vnet create \
+    --address-prefixes 10.57.0.0/16 \
+    --name informationgrid-development-vnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --tags 'Developer=arjan.schaaf@iddinkgroup.com'
+
+az network vnet subnet create \
+    --address-prefix 10.57.20.0/22 \
+    --name informationgrid-development-mongo-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --vnet-name informationgrid-development-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.57.40.0/22 \
+    --name informationgrid-development-elastic-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --vnet-name informationgrid-development-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.57.60.0/22 \
+    --name informationgrid-development-kafka-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --vnet-name informationgrid-development-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.57.120.0/22 \
+    --name informationgrid-development-zookeeper-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --vnet-name informationgrid-development-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.57.200.0/22 \
+    --name informationgrid-development-tools-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --vnet-name informationgrid-development-vnet
+
+######################################################################## MM_IG_magister.me Network Configuration ########################################################################
+
+az network vnet create \
+    --address-prefixes 10.79.0.0/16 \
+    --name informationgrid-production-vnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --tags 'Developer=arjan.schaaf@iddinkgroup.com'
+
+az network vnet subnet create \
+    --address-prefix 10.79.20.0/22 \
+    --name informationgrid-production-mongo-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --vnet-name informationgrid-production-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.79.40.0/22 \
+    --name informationgrid-production-elastic-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --vnet-name informationgrid-production-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.79.60.0/22 \
+    --name informationgrid-production-kafka-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --vnet-name informationgrid-production-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.79.120.0/22 \
+    --name informationgrid-production-zookeeper-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --vnet-name informationgrid-production-vnet 
+
+az network vnet subnet create \
+    --address-prefix 10.79.200.0/22 \
+    --name informationgrid-production-tools-subnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --vnet-name informationgrid-production-vnet 
+
+
+######################################################################## MM_CloudRTI Network Configuration ########################################################################
+az network vnet create \
+    --address-prefixes 10.102.0.0/16 \
+    --name cloudrti-vnet \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI \
+    --tags 'Developer=arjan.schaaf@iddinkgroup.com'
+
+az network vnet subnet create \
+    --address-prefix 10.102.4.0/22 \
+    --name cloudrti-infra-subnet \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI \
+    --vnet-name cloudrti-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.102.32.0/20 \
+    --name cloudrti-aks-subnet \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI \
+    --vnet-name cloudrti-vnet
+
+az network vnet subnet create \
+    --address-prefix 10.102.48.0/20 \
+    --name cloudrti-aks-virtual-node-subnet \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI \
+    --vnet-name cloudrti-vnet
+
+az network private-dns zone create \
+    --name private.cloud-rti.com \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI
+
+az network private-dns link vnet create \
+    --name interlink-dns-subscriptions-MM_CloudRTI \
+    --registration-enabled true \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI \
+    --virtual-network cloudrti-vnet \
+    --zone-name private.cloud-rti.com
+
+#does not work: added it in the UI
+az network private-dns link vnet create \
+    --name interlink-dns-subscriptions-MM_IG_yunoo.me \
+    --registration-enabled true \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --virtual-network informationgrid-development-vnet \
+    --zone-name private.cloud-rti.com
+
+#does not work: added it in the UI
+az network private-dns link vnet create \
+    --name interlink-dns-subscriptions-MM_CloudRTI_magister.me \
+    --registration-enabled true \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --virtual-network informationgrid-production-vnet \
+    --zone-name private.cloud-rti.com
+
+
+
+# determine the full path to the remote vnet
+az network vnet list --resource-group informationgrid --subscription MM_IG_yunoo.me
+# then link the cloudrti to the remote vnet
+az network vnet peering create \
+    --allow-gateway-transit \
+    --allow-vnet-access \
+    --name cloudrti-2-informationgrid-development \
+    --remote-vnet /subscriptions/98b1432e-1cf8-4095-86c6-5e441675b745/resourceGroups/informationgrid/providers/Microsoft.Network/virtualNetworks/informationgrid-development-vnet \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI \
+    --vnet-name cloudrti-vnet
+#connection needs to be bi-directional
+az network vnet list --resource-group cloudrti --subscription MM_CloudRTI
+az network vnet peering create \
+    --allow-vnet-access \
+    --name cloudrti-2-informationgrid-development \
+    --remote-vnet /subscriptions/a3f9f508-0bc3-440b-99ae-cc28e0403926/resourceGroups/cloudrti/providers/Microsoft.Network/virtualNetworks/cloudrti-vnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_yunoo.me \
+    --use-remote-gateways \
+    --vnet-name informationgrid-development-vnet
+
+
+az network vnet peering create \
+    --allow-gateway-transit \
+    --allow-vnet-access \
+    --name cloudrti-2-informationgrid-production \
+    --remote-vnet /subscriptions/5b7fd3e1-a316-4cd6-a5ed-01831bf8eec3/resourceGroups/informationgrid/providers/Microsoft.Network/virtualNetworks/informationgrid-production-vnet \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI \
+    --vnet-name cloudrti-vnet
+#connection needs to be bi-directional
+az network vnet list --resource-group cloudrti --subscription MM_CloudRTI
+az network vnet peering create \
+    --allow-vnet-access \
+    --name cloudrti-2-informationgrid-production \
+    --remote-vnet /subscriptions/a3f9f508-0bc3-440b-99ae-cc28e0403926/resourceGroups/cloudrti/providers/Microsoft.Network/virtualNetworks/cloudrti-vnet \
+    --resource-group informationgrid \
+    --subscription MM_IG_magister.me \
+    --use-remote-gateways \
+    --vnet-name informationgrid-production-vnet
+
+
+
+
+######################################################################## CloudRTI AKS Configuration ########################################################################
+
+az ad sp create-for-rbac \
+    --skip-assignment \
+    --subscription MM_Deployment
+
+output generated by create-for-rbac command ->
+{
+  "appId": "0d35bcf8-b104-4bae-9177-51e08a5666af",
+  "displayName": "azure-cli-2019-11-05-10-59-13",
+  "name": "http://azure-cli-2019-11-05-10-59-13",
+  "password": "12345678",
+  "tenant": "99467c8f-450d-4131-af72-3320f0203866"
+}
+
+az network vnet show \
+    --resource-group cloudrti \
+    --name cloudrti-vnet \
+    --output tsv \
+    --query id \
+    --resource-group cloudrti \
+    --subscription MM_Deployment
+
+output generated by vnet show command ->
+/subscriptions/a3f9f508-0bc3-440b-99ae-cc28e0403926/resourceGroups/cloudrti/providers/Microsoft.Network/virtualNetworks/cloudrti-vnet
+
+template -> az role assignment create --assignee <appId> --scope <resourceScope> --role Contributor
+
+az role assignment create \
+    --assignee 0d35bcf8-b104-4bae-9177-51e08a5666af \
+    --role Contributor \
+    --scope /subscriptions/a3f9f508-0bc3-440b-99ae-cc28e0403926/resourceGroups/cloudrti/providers/Microsoft.Network/virtualNetworks/cloudrti-vnet \
+    --subscription MM_Deployment
+
+
+az network vnet subnet show \
+    --name cloudrti-aks-subnet \
+    --query id -o tsv \
+    --resource-group cloudrti \
+    --subscription MM_Deployment \
+    --vnet-name cloudrti-vnet
+
+
+
+az aks create \
+    --client-secret c7bc3cd9-0cfb-4355-bdaa-f7c6c977bcbb \
+    --dns-service-ip 10.102.192.10 \
+    --docker-bridge-address 172.17.0.1/16 \
+    --kubernetes-version "1.14.8" \
+    --name cloudrti \
+    --network-plugin azure \
+    --node-count 3 \
+    --node-vm-size Standard_D16s_v3 \
+    --resource-group cloudrti \
+    --service-cidr 10.102.192.0/18 \
+    --service-principal 0d35bcf8-b104-4bae-9177-51e08a5666af \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI \
+    --tags 'Developer=arjan.schaaf@iddinkgroup.com' \
+    --vnet-subnet-id /subscriptions/a3f9f508-0bc3-440b-99ae-cc28e0403926/resourceGroups/cloudrti/providers/Microsoft.Network/virtualNetworks/cloudrti-vnet/subnets/cloudrti-aks-subnet
+    
+    
+
+az aks get-credentials \
+    --name cloudrti \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI
+
+az aks get-upgrades \
+    --name cloudrti \
+    --output table \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI
+
+
+kubectl --context cloudrti get node
+
+
+
+
+######################################################################## Helm Configuration ########################################################################    
+
+https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm
+https://docs.microsoft.com/bs-cyrl-ba/azure/aks/ingress-basic
+
+kubectl --context cloudrti apply -f helm-rbac.yaml
+helm --kube-context cloudrti init --service-account tiller
+kubectl --context cloudrti get pod --all-namespaces
+helm --kube-context cloudrti repo update
+
+helm --kube-context cloudrti plugin install https://github.com/helm/helm-2to3.git
+helm --kube-context cloudrti 2to3 move config
+helm2 --kube-context cloudrti list
+helm --kube-context cloudrti 2to3 convert prometheus-operator
+helm --kube-context cloudrti 2to3 convert internal-nginx-ingress
+helm --kube-context cloudrti 2to3 convert nginx-ingress
+helm --kube-context cloudrti 2to3 cleanup --kube-context cloudrti
+helm --kube-context cloudrti repo list
+
+######################################################################## Ingress Controller Configuration ########################################################################    
+
+
+https://docs.microsoft.com/en-us/azure/aks/ingress-static-ip
+az aks show \
+    --name cloudrti \
+    --query nodeResourceGroup \
+    --output tsv \
+    --resource-group cloudrti \
+    --subscription MM_CloudRTI 
+
+az network public-ip create \
+    --resource-group MC_cloudrti_cloudrti_westeurope \
+    --name cloudrti-aks-public-ingress-controller \
+    --allocation-method static \
+    --sku Standard \
+    --subscription MM_CloudRTI
+
+kubectl --context cloudrti create namespace ingress-controller
+helm --kube-context cloudrti install nginx-ingress stable/nginx-ingress \
+    --namespace ingress-controller \
+    --set controller.config.proxy-body-size="512m" \
+    --set controller.config.proxy-buffering="on" \
+    --set controller.config.proxy-buffer-size="8k" \
+    --set controller.config.vts-status-zone-size="32m" \
+    --set controller.replicaCount=2 \
+    --set controller.service.externalTrafficPolicy="Local" \
+    --set controller.service.loadBalancerIP="51.105.199.188" \
+    --set controller.stats.enabled=true \
+    --version 0.21.0
+
+helm --kube-context cloudrti upgrade nginx-ingress stable/nginx-ingress \
+    --namespace ingress-controller \
+    --set controller.config.proxy-body-size="512m" \
+    --set controller.config.proxy-buffering="on" \
+    --set controller.config.proxy-buffer-size="8k" \
+    --set controller.config.vts-status-zone-size="32m" \
+    --set controller.replicaCount=2 \
+    --set controller.service.externalTrafficPolicy="Local" \
+    --set controller.service.loadBalancerIP="51.105.199.188" \
+    --set controller.stats.enabled=true \
+    --version 0.21.0
+
+helm --kube-context cloudrti --namespace ingress-controller install internal-nginx-ingress stable/nginx-ingress \
+    --namespace ingress-controller \
+    --set controller.config.proxy-body-size="512m" \
+    --set controller.config.proxy-buffering="on" \
+    --set-string controller.config.proxy-buffers-number=8 \
+    --set controller.config.proxy-buffer-size="8k" \
+    --set controller.ingressClass=internal-nginx \
+    --set controller.replicaCount=1 \
+    --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"=true \
+    --set controller.service.externalTrafficPolicy="Local" \
+    --set controller.stats.enabled=true
+
+helm --kube-context cloudrti --namespace ingress-controller upgrade internal-nginx-ingress stable/nginx-ingress \
+    --namespace ingress-controller \
+    --set controller.config.proxy-body-size="512m" \
+    --set controller.config.proxy-buffering="on" \
+    --set-string controller.config.proxy-buffers-number=8 \
+    --set controller.config.proxy-buffer-size="8k" \
+    --set controller.ingressClass=internal-nginx \
+    --set controller.replicaCount=1 \
+    --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"=true \
+    --set controller.service.externalTrafficPolicy="Local" \
+    --set controller.stats.enabled=true
+
+
+helm --kube-context cloudrti del internal-nginx-ingress
+
+kubectl --context cloudrti --namespace=monitoring create secret tls tls-cloud-rti-com-certificate --key ~/.ssh/star_cloud-rti_com.key --cert certs/__cloud-rti_com.chain
+
+kubectl --context cloudrti apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.37/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+kubectl --context cloudrti apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.37/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+kubectl --context cloudrti apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.37/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+kubectl --context cloudrti apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.37/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+kubectl --context cloudrti apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.37/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+kubectl --context cloudrti apply --validate=false -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.37/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
+
+
+helm --kube-context cloudrti --namespace monitoring install prometheus-operator stable/prometheus-operator -f prometheus-operator-values.yaml
+helm --kube-context cloudrti --namespace monitoring del prometheus-operator
+helm --kube-context cloudrti --namespace monitoring upgrade -f prometheus-operator-values.yaml prometheus-operator stable/prometheus-operator
+
+######################################################################## CloudRTI Zookeeper cluster Configuration ########################################################################    
+
+az vm create \
+    --name cloudrti-zookeeper-node-1 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-zookeeper-node-1.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --no-wait \
+    --private-ip-address 10.102.4.103 \
+    --public-ip-address "" \
+    --size Standard_B1ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+az vm create \
+    --name cloudrti-zookeeper-node-2 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-zookeeper-node-2.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --no-wait \
+    --private-ip-address 10.102.4.104 \
+    --public-ip-address "" \
+    --size Standard_B1ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+az vm create \
+    --name cloudrti-zookeeper-node-3 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-zookeeper-node-3.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --no-wait \
+    --private-ip-address 10.102.4.105 \
+    --public-ip-address "" \
+    --size Standard_B1ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+    
+######################################################################## CloudRTI Kafka cluster Configuration ########################################################################    
+    
+az vm create \
+    --name cloudrti-kafka-node-1 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-kafka-node-1.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --no-wait \
+    --private-ip-address 10.102.4.106 \
+    --public-ip-address "" \
+    --size Standard_B1ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+az vm create \
+    --name cloudrti-kafka-node-2 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-kafka-node-2.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --no-wait \
+    --private-ip-address 10.102.4.107 \
+    --public-ip-address "" \
+    --size Standard_B1ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+
+az vm create \
+    --name cloudrti-kafka-node-3 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-kafka-node-3.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --no-wait \
+    --private-ip-address 10.102.4.108 \
+    --public-ip-address "" \
+    --size Standard_B1ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+
+######################################################################## CloudRTI MongoDB cluster Configuration ########################################################################    
+
+az vm create \
+    --name cloudrti-mongo-node-1 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --zone 1 \
+    --custom-data "$(cat cloudrti-mongo-node.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --private-ip-address 10.102.4.109 \
+    --public-ip-address "" \
+    --vnet-name cloudrti-vnet \
+    --subnet cloudrti-infra-subnet \
+    --size Standard_B2s \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+az vm create \
+    --name cloudrti-mongo-node-2 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --zone 2 \
+    --custom-data "$(cat cloudrti-mongo-node.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --private-ip-address 10.102.4.110 \
+    --public-ip-address "" \
+    --vnet-name cloudrti-vnet \
+    --subnet cloudrti-infra-subnet \
+    --size Standard_B2s \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+az vm create \
+    --name cloudrti-mongo-node-3 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --zone 3 \
+    --custom-data "$(cat cloudrti-mongo-node.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --private-ip-address 10.102.4.111 \
+    --public-ip-address "" \
+    --vnet-name cloudrti-vnet \
+    --subnet cloudrti-infra-subnet \
+    --size Standard_B2s \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+
+use graylog
+db.createUser(
+   {
+     user: "graylog",
+     pwd: "12345678",
+     roles: [ "readWrite" ]
+   }
+)
+
+use dashboard
+db.createUser(
+   {
+     user: "dashboard",
+     pwd: "12345678",
+     roles: [ "readWrite" ]
+   }
+)
+    
+
+ ######################################################################## CloudRTI Postgresql (keycloak) Configuration ########################################################################    
+   
+az postgres server create \
+    --admin-password 12345678 \
+    --admin-user cloudrti \
+    --name cloudrti \
+    --resource-group cloudrti \
+    --storage-size 51200 \
+    --sku-name B_Gen5_1 \
+    --location westeurope \
+    --ssl-enforcement Disabled \
+    --subscription MM_CloudRTI \
+    --tags 'Developer=arjan.schaaf@iddinkgroup.com'
+
+az postgres db create \
+    --name keycloak \
+    --resource-group cloudrti \
+    --server-name cloudrti \
+    --subscription MM_CloudRTI
+
+az postgres db list \
+    --resource-group cloudrti \
+    --server-name cloudrti \
+    --subscription MM_CloudRTI
+
+// if database is no longer needed:
+az postgres db delete \
+    --name keycloak \
+    --resource-group cloudrti \
+    --server-name cloudrti \
+    --subscription MM_CloudRTI
+
+ ######################################################################## CloudRTI LDAP (keycloak) Configuration ########################################################################    
+
+     
+az vm create \
+    --name cloudrti-ldap \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-ldap-node.yml)" \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --private-ip-address 10.102.4.112 \
+    --public-ip-address "" \
+    --size Standard_B1ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+    
+    
+    
+ ######################################################################## CloudRTI Elastic (Graylog) Configuration ########################################################################    
+
+
+az vm create \
+    --name cloudrti-elastic-node-1 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-elastic-node.yml)" \
+    --os-disk-size-gb 256 \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --private-ip-address 10.102.4.113 \
+    --public-ip-address "" \
+    --vnet-name cloudrti-vnet \
+    --subnet cloudrti-infra-subnet \
+    --size Standard_B2ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+az vm create \
+    --name cloudrti-elastic-node-2 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-elastic-node.yml)" \
+    --os-disk-size-gb 256 \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --private-ip-address 10.102.4.114 \
+    --public-ip-address "" \
+    --vnet-name cloudrti-vnet \
+    --subnet cloudrti-infra-subnet \
+    --size Standard_B2ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+
+az vm create \
+    --name cloudrti-elastic-node-3 \
+    --resource-group cloudrti \
+    --admin-username cloudrti \
+    --custom-data "$(cat cloudrti-elastic-node.yml)" \
+    --os-disk-size-gb 256 \
+    --image Canonical:UbuntuServer:18.04-LTS:latest \
+    --private-ip-address 10.102.4.115 \
+    --public-ip-address "" \
+    --vnet-name cloudrti-vnet \
+    --subnet cloudrti-infra-subnet \
+    --size Standard_B2ms \
+    --ssh-key-value ~/.ssh/azure-iddink.pub \
+    --subscription MM_CloudRTI
+  
+
+
+
+

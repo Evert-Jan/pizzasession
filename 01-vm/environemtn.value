@@ -1,0 +1,9 @@
+tagcreatedby="created-by="$(az account show --query 'user.name' --output tsv)""
+tagmmecost="mmecostgroup=mme-build"
+tagcost="cost-center=2370"
+tagowner="owner=mme-devops"
+tagservice="service=build"
+tagall=$(echo $tagservice " " $tagowner " " $tagmmecost " " $tagcreated " " $tagcost " " $tagcreatedby)
+location="westeuropa"
+subscription="Eduarte_TeamRockCity"
+resourcegroup="ejl01"
