@@ -8,7 +8,7 @@ az account set --subscription bb09eaf3-5f0a-4389-b983-07bb6c49aaad
 
 az account set --subscription Eduarte_Team_RockCity
 
-az accoutn set --subscription 'Iddink Eduarte - ETAP'
+az account set --subscription 'Iddink Eduarte - ETAP'
 
 az account set --subscription Eduarte_Team_RockCity
 
